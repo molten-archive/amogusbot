@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import discord, os
+from discord.ext import commands
 import os
 from os.path import join, dirname
 from dotenv import load_dotenv
@@ -7,20 +8,69 @@ from dotenv import load_dotenv
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
-class amogus(discord.Client):
-    async def on_ready(self):
-        print('Imposter:')
-        print(self.user.name)
-        print(self.user.id)
-        print('-------------')
+bot = commands.Bot(command_prefix='.')
+bot.remove_command('help')
 
-    async def on_message(self, message):
-        # we do not want the bot to reply to itself
-        if message.author.id == self.user.id:
-            return
+@bot.event
+async def on_ready():
+    print('Imposter is:')
+    print(bot.user.name)
+    print('------------')
 
-        if message.content.startswith('!amogus'):
-            await message.reply('When the imposter is sus!', mention_author=True)
+@bot.command()
+@commands.has_permissions(kick_members=True)
+async def kick(ctx, user: discord.Member, *, reason = None):
+  if not reason:
+    await user.kick()
+    embed=discord.Embed(title="Kick", description=f"**{user}** got kicked for **no reason**.")
+    await ctx.send(embed=embed)
+  else:
+    await user.kick(reason=reason)
+    embed=discord.Embed(title="Kick", description=f"**{user}** has been kicked for **{reason}**.")
+    await ctx.send(embed=embed)
 
-client = amogus()
-client.run(os.getenv('TOKEN'))
+@bot.command()
+@commands.has_permissions(ban_members=True)
+async def ban(ctx, user: discord.Member, *, reason = None):
+  if not reason:
+    await user.ban()
+    embed=discord.Embed(title="Ban", description=f"**{user}** got banned for **no reason**.")
+    await ctx.send(embed=embed)
+  else:
+    await user.ban(reason=reason)
+    embed=discord.Embed(title="Ban", description=f"**{user}** has been banned for **{reason}**.")
+    await ctx.send(embed=embed)
+
+
+@bot.command()
+@commands.has_permissions(kick_members=True)
+async def mute(ctx, user: discord.Member, *, reason = None):
+  if not reason:
+    await user.edit(mute = True)
+    embed=discord.Embed(title="Mute", description=f"**{user}** got muted for **no reason**.")
+    await ctx.send(embed=embed)
+  else:
+    await user.edit(mute = True)
+    embed=discord.Embed(title="Ban", description=f"**{user}** has been muted for **{reason}**.")
+    await ctx.send(embed=embed)
+        
+@bot.command()
+async def sus(ctx):
+    await ctx.send("sus :flushed:")    
+
+@bot.command()
+async def amogus(ctx):
+    await ctx.send("amogus")
+            
+@bot.command()
+async def help(ctx):
+    embed=discord.Embed(title="Help", description="Amogus bot", color=0xff0000)
+    embed.add_field(name=".help", value="Displays this command.", inline=False)
+    embed.add_field(name=".sus", value="Sus Amogus.", inline=True)
+    embed.add_field(name=".amogus", value="Amogus sus.", inline=True)
+    embed.add_field(name=".ban", value="Ban a user.", inline=True)
+    embed.add_field(name=".kick", value="Kick a user.", inline=True)
+    embed.add_field(name=".mute", value="Mute a user.", inline=True)
+    await ctx.send(embed=embed)
+
+bot.run(os.getenv('TOKEN'))
